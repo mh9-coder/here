@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>부산 맛집, 뭐 먹지?</title>
+    <meta
+      name="description"
+      content="부산 해운대, 광안리, 서면, 전포 지역별 맛집 가이드. 대표 메뉴, 주소, 주변 관광지를 한눈에 확인하세요."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="#top">부산 맛집, 뭐 먹지?</a>
+        <div class="header-actions">
+          <nav class="nav-links">
+            <a href="#regions">지역 선택</a>
+            <a href="#contact">문의하기</a>
+            <a href="#footer">정보 기준일</a>
+          </nav>
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="다크모드 토글">
+            <span class="theme-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">부산 여행 시작하기</p>
+            <h1>
+              오늘은 어디서 먹고,<br />
+              어디로 갈까?
+            </h1>
+            <p class="hero-subtext">
+              맛집도 찾고, 부산 여행도 시작해보세요.
+            </p>
+            <a class="cta" href="#regions">지역 선택하기</a>
+          </div>
+          <div class="hero-image-card">
+            <img
+              src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+              alt="부산 바다 풍경"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="regions" class="regions-section">
+        <div class="container">
+          <div class="section-heading">
+            <h2>어느 지역으로 가볼까요?</h2>
+            <p>해운대 · 광안리 · 서면 · 전포 중 마음에 드는 지역을 선택하세요.</p>
+          </div>
+          <div class="region-grid" id="regionGrid"></div>
+        </div>
+      </section>
+
+      <section class="intro-section">
+        <div class="container intro-card">
+          <h2>부산 맛집 가이드를 한눈에</h2>
+          <p>
+            각 지역의 추천 맛집 5곳을 통해 대표 메뉴, 주소, 주변 관광지를 함께 확인할 수 있습니다.
+          </p>
+        </div>
+      </section>
+
+      <section id="regionDetails" class="details-section"></section>
+
+    <section id="contact" class="contact-section">
+      <div class="container contact-card">
+        <div class="section-heading">
+          <h2>문의하기</h2>
+          <p>원하는 지역이나 추천 맛집에 대해 남겨주시면 확인 후 반영하겠습니다.</p>
+        </div>
+
+        <form id="contactForm" class="contact-form">
+          <label>
+            <span>닉네임</span>
+            <input type="text" name="nickname" placeholder="닉네임을 입력하세요" required />
+          </label>
+          <label>
+            <span>연락 가능 시간</span>
+            <input type="text" name="contactTime" placeholder="예: 오후 2시~5시" required />
+          </label>
+          <label>
+            <span>문의 내용</span>
+            <textarea name="message" rows="5" placeholder="문의 내용을 입력하세요" required></textarea>
+          </label>
+          <button class="submit-button" type="submit">접수하기</button>
+        </form>
+      </div>
+    </section>
+    </main>
+
+    <footer id="footer" class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-title">© 2026 부산 맛집, 뭐 먹지?</p>
+          <p>정보 기준일: 2026-08-03</p>
+        </div>
+        <div>
+          <p>이미지 출처 및 라이선스 정보</p>
+          <p>대표 이미지: Unsplash / Unsplash License</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
