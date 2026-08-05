@@ -4,7 +4,7 @@ const GUESTBOOK_TABLE = 'guestbook';
 const MESSAGE_TABLE = 'message';
 const MAX_MESSAGES = 50;
 
-const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const regions = [
   {
@@ -390,12 +390,12 @@ function renderChatList(messages) {
 }
 
 async function loadChat() {
-  if (!supabase || !chatList) {
-    setChatStatus('Supabase 연결 정보를 확인해 주세요.');
+  if (!supabaseClient || !chatList) {
+    setChatStatus('Supabase SDK 또는 연결 정보를 확인해 주세요.');
     return;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(MESSAGE_TABLE)
     .select('id, nickname, message, created_at')
     .order('created_at', { ascending: false })
@@ -412,11 +412,14 @@ async function loadChat() {
 }
 
 async function submitChatMessage(nickname, message) {
-  if (!supabase) return;
+  if (!supabaseClient) {
+    setChatStatus('Supabase SDK 또는 연결 정보를 확인해 주세요.');
+    return;
+  }
   const submitButton = chatForm?.querySelector('.submit-button');
   if (submitButton) submitButton.disabled = true;
 
-  const { error } = await supabase.from(MESSAGE_TABLE).insert([{ nickname, message }]);
+  const { error } = await supabaseClient.from(MESSAGE_TABLE).insert([{ nickname, message }]);
   if (submitButton) submitButton.disabled = false;
 
   if (error) {
@@ -429,9 +432,9 @@ async function submitChatMessage(nickname, message) {
 }
 
 function subscribeToChat() {
-  if (!supabase || !chatList) return;
+  if (!supabaseClient || !chatList) return;
 
-  supabase
+  supabaseClient
     .channel('public:message')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: MESSAGE_TABLE }, payload => {
       const emptyMessage = chatList.querySelector('.chat-item p')?.textContent?.startsWith('아직 대화가 없습니다');
@@ -455,8 +458,8 @@ function subscribeToChat() {
 }
 
 function subscribeToGuestbook() {
-  if (!supabase || !guestbookList) return;
-  supabase
+  if (!supabaseClient || !guestbookList) return;
+  supabaseClient
     .channel('public:guestbook')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: GUESTBOOK_TABLE }, () => loadGuestbook())
     .subscribe();
@@ -482,14 +485,14 @@ function renderGuestbookList(messages) {
 }
 
 async function loadGuestbook() {
-  if (!supabase || !guestbookList) {
-    setGuestbookStatus('Supabase URL과 Publishable key를 설정해야 방명록을 조회할 수 있습니다.');
+  if (!supabaseClient || !guestbookList) {
+    setGuestbookStatus('Supabase SDK 또는 연결 정보를 확인해 주세요.');
     return;
   }
 
   setGuestbookStatus('방명록을 불러오는 중입니다...');
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(GUESTBOOK_TABLE)
     .select('id, nickname, message, created_at')
     .order('created_at', { ascending: false })
@@ -506,15 +509,15 @@ async function loadGuestbook() {
 }
 
 async function submitGuestbookEntry(nickname, message) {
-  if (!supabase) {
-    setGuestbookStatus('Supabase URL과 Publishable key를 설정해야 메시지를 저장할 수 있습니다.');
+  if (!supabaseClient) {
+    setGuestbookStatus('Supabase SDK 또는 연결 정보를 확인해 주세요.');
     return;
   }
 
   const submitButton = contactForm?.querySelector('.submit-button');
   if (submitButton) submitButton.disabled = true;
 
-  const { error } = await supabase.from(GUESTBOOK_TABLE).insert([
+  const { error } = await supabaseClient.from(GUESTBOOK_TABLE).insert([
     { nickname, message }
   ]);
 
