@@ -1,3 +1,11 @@
+const SUPABASE_URL = 'https://gfmthahpoclieanvushr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_zxmHOKWrv5-cCLiz8GMRmg_Kas4bBVC';
+const GUESTBOOK_TABLE = 'guestbook';
+const MESSAGE_TABLE = 'message';
+const MAX_MESSAGES = 50;
+
+const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const regions = [
   {
     id: 'haeundae',
@@ -233,6 +241,11 @@ const regionGrid = document.querySelector('#regionGrid');
 const regionDetails = document.querySelector('#regionDetails');
 const themeToggle = document.querySelector('#themeToggle');
 const contactForm = document.querySelector('#contactForm');
+const guestbookStatus = document.querySelector('#guestbookStatus');
+const guestbookList = document.querySelector('#guestbookList');
+const chatForm = document.querySelector('#chatForm');
+const chatStatus = document.querySelector('#chatStatus');
+const chatList = document.querySelector('#chatList');
 
 const sunIcon = `
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -334,6 +347,190 @@ function renderRegionPanels() {
   });
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function setGuestbookStatus(message) {
+  if (!guestbookStatus) return;
+  guestbookStatus.textContent = message;
+}
+
+function setChatStatus(message) {
+  if (chatStatus) chatStatus.textContent = message;
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('ko-KR');
+}
+
+function renderChatList(messages) {
+  if (!chatList) return;
+  if (!messages.length) {
+    chatList.innerHTML = '<div class="chat-item"><p>아직 대화가 없습니다. 첫 메시지를 남겨 보세요.</p></div>';
+    return;
+  }
+
+  chatList.innerHTML = messages.map(message => `
+    <article class="chat-item">
+      <header>
+        <h3>${escapeHtml(message.nickname)}</h3>
+        <span class="chat-time">${formatDate(message.created_at)}</span>
+      </header>
+      <p>${escapeHtml(message.message)}</p>
+    </article>
+  `).join('');
+  chatList.scrollTop = chatList.scrollHeight;
+}
+
+async function loadChat() {
+  if (!supabase || !chatList) {
+    setChatStatus('Supabase 연결 정보를 확인해 주세요.');
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from(MESSAGE_TABLE)
+    .select('id, nickname, message, created_at')
+    .order('created_at', { ascending: false })
+    .limit(MAX_MESSAGES);
+
+  if (error) {
+    setChatStatus('채팅을 불러오지 못했습니다. message 테이블과 RLS SELECT 정책을 확인해 주세요.');
+    console.error(error);
+    return;
+  }
+
+  renderChatList((data || []).reverse());
+  setChatStatus('실시간 채팅방에 연결되었습니다.');
+}
+
+async function submitChatMessage(nickname, message) {
+  if (!supabase) return;
+  const submitButton = chatForm?.querySelector('.submit-button');
+  if (submitButton) submitButton.disabled = true;
+
+  const { error } = await supabase.from(MESSAGE_TABLE).insert([{ nickname, message }]);
+  if (submitButton) submitButton.disabled = false;
+
+  if (error) {
+    setChatStatus('메시지 전송에 실패했습니다. RLS INSERT 정책을 확인해 주세요.');
+    console.error(error);
+    return;
+  }
+
+  chatForm?.reset();
+}
+
+function subscribeToChat() {
+  if (!supabase || !chatList) return;
+
+  supabase
+    .channel('public:message')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: MESSAGE_TABLE }, payload => {
+      const emptyMessage = chatList.querySelector('.chat-item p')?.textContent?.startsWith('아직 대화가 없습니다');
+      if (emptyMessage) chatList.innerHTML = '';
+      chatList.insertAdjacentHTML('beforeend', `
+        <article class="chat-item">
+          <header>
+            <h3>${escapeHtml(payload.new.nickname)}</h3>
+            <span class="chat-time">${formatDate(payload.new.created_at)}</span>
+          </header>
+          <p>${escapeHtml(payload.new.message)}</p>
+        </article>
+      `);
+      chatList.scrollTop = chatList.scrollHeight;
+    })
+    .subscribe(status => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setChatStatus('실시간 연결에 실패했습니다. Supabase Realtime에서 message 테이블을 활성화해 주세요.');
+      }
+    });
+}
+
+function subscribeToGuestbook() {
+  if (!supabase || !guestbookList) return;
+  supabase
+    .channel('public:guestbook')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: GUESTBOOK_TABLE }, () => loadGuestbook())
+    .subscribe();
+}
+
+function renderGuestbookList(messages) {
+  if (!guestbookList) return;
+
+  if (!messages.length) {
+    guestbookList.innerHTML = '<div class="guestbook-item"><p>아직 등록된 방명록이 없습니다.</p></div>';
+    return;
+  }
+
+  guestbookList.innerHTML = messages.map(message => `
+    <article class="guestbook-item">
+      <header>
+        <h3>${escapeHtml(message.nickname)}</h3>
+        <span class="guestbook-time">${formatDate(message.created_at)}</span>
+      </header>
+      <p>${escapeHtml(message.message)}</p>
+    </article>
+  `).join('');
+}
+
+async function loadGuestbook() {
+  if (!supabase || !guestbookList) {
+    setGuestbookStatus('Supabase URL과 Publishable key를 설정해야 방명록을 조회할 수 있습니다.');
+    return;
+  }
+
+  setGuestbookStatus('방명록을 불러오는 중입니다...');
+
+  const { data, error } = await supabase
+    .from(GUESTBOOK_TABLE)
+    .select('id, nickname, message, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    setGuestbookStatus('방명록 목록을 불러오지 못했습니다. 테이블과 RLS 정책을 확인하세요.');
+    console.error(error);
+    return;
+  }
+
+  renderGuestbookList(data || []);
+  setGuestbookStatus(`최근 ${data?.length || 0}개의 메시지를 불러왔습니다.`);
+}
+
+async function submitGuestbookEntry(nickname, message) {
+  if (!supabase) {
+    setGuestbookStatus('Supabase URL과 Publishable key를 설정해야 메시지를 저장할 수 있습니다.');
+    return;
+  }
+
+  const submitButton = contactForm?.querySelector('.submit-button');
+  if (submitButton) submitButton.disabled = true;
+
+  const { error } = await supabase.from(GUESTBOOK_TABLE).insert([
+    { nickname, message }
+  ]);
+
+  if (submitButton) submitButton.disabled = false;
+
+  if (error) {
+    setGuestbookStatus('메시지 저장에 실패했습니다. 테이블과 RLS 정책을 다시 확인하세요.');
+    console.error(error);
+    return;
+  }
+
+  setGuestbookStatus('메시지가 저장되었습니다. 최신 목록을 다시 불러왔습니다.');
+  contactForm?.reset();
+  await loadGuestbook();
+}
+
 if (themeToggle) {
   themeToggle.addEventListener('click', () => {
     const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -348,11 +545,20 @@ if (contactForm) {
     isFormDirty = true;
   });
 
-  contactForm.addEventListener('submit', event => {
+  contactForm.addEventListener('submit', async event => {
     event.preventDefault();
-    alert('접수되었습니다.');
+
+    const formData = new FormData(contactForm);
+    const nickname = String(formData.get('nickname') || '').trim();
+    const message = String(formData.get('message') || '').trim();
+
+    if (!nickname || !message) {
+      setGuestbookStatus('닉네임과 메시지를 모두 입력해 주세요.');
+      return;
+    }
+
+    await submitGuestbookEntry(nickname, message);
     isFormDirty = false;
-    contactForm.reset();
   });
 
   window.addEventListener('beforeunload', event => {
@@ -362,6 +568,25 @@ if (contactForm) {
   });
 }
 
+if (chatForm) {
+  chatForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const formData = new FormData(chatForm);
+    const nickname = String(formData.get('nickname') || '').trim();
+    const message = String(formData.get('message') || '').trim();
+
+    if (!nickname || !message) {
+      setChatStatus('닉네임과 메시지를 모두 입력해 주세요.');
+      return;
+    }
+    await submitChatMessage(nickname, message);
+  });
+}
+
 initTheme();
 renderRegionCards();
 renderRegionPanels();
+loadGuestbook();
+subscribeToGuestbook();
+loadChat();
+subscribeToChat();

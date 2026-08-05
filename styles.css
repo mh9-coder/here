@@ -180,7 +180,9 @@ body[data-theme='dark'] img {
 .regions-section,
 .details-section,
 .intro-section,
-.contact-section {
+.contact-section,
+.guestbook-section,
+.chat-section {
   padding: 24px 0 42px;
 }
 
@@ -362,7 +364,8 @@ body[data-theme='light'] .restaurant-actions button {
   color: var(--primary-deep);
 }
 
-.contact-card {
+.contact-card,
+.chat-card {
   background: var(--white);
   padding: 28px;
   border-radius: var(--radius);
@@ -400,6 +403,98 @@ body[data-theme='light'] .restaurant-actions button {
   font-weight: 800;
   cursor: pointer;
   width: fit-content;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.guestbook-status {
+  margin-bottom: 16px;
+  color: var(--muted);
+  min-height: 24px;
+}
+
+.guestbook-list {
+  display: grid;
+  gap: 12px;
+}
+
+.chat-status {
+  margin: 0 0 16px;
+  color: var(--muted);
+  min-height: 24px;
+}
+
+.chat-list {
+  display: grid;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-bottom: 18px;
+  padding-right: 4px;
+}
+
+.chat-item {
+  background: rgba(26, 95, 191, 0.06);
+  border: 1px solid rgba(26, 95, 191, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.chat-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.chat-item h3,
+.chat-item p {
+  margin: 0;
+}
+
+.chat-item p {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-time {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.guestbook-item {
+  background: rgba(26, 95, 191, 0.06);
+  border: 1px solid rgba(26, 95, 191, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.guestbook-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.guestbook-item h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.guestbook-item p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.guestbook-time {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .site-footer {
