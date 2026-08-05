@@ -1,10 +1,12 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
 const SUPABASE_URL = 'https://gfmthahpoclieanvushr.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_zxmHOKWrv5-cCLiz8GMRmg_Kas4bBVC';
 const GUESTBOOK_TABLE = 'guestbook';
 const MESSAGE_TABLE = 'message';
 const MAX_MESSAGES = 50;
 
-const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const regions = [
   {
